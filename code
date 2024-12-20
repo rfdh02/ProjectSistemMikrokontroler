@@ -1,0 +1,74 @@
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+const int sensorMoisture = A0; // Soil moisture sensor pin
+const int sensorTemperature = A1; // Temperature sensor pin
+const int relay = 5; // Relay pin
+const int ledBlue = 4; // Green LED pin
+const int ledYellow = 3; // Yellow LED pin
+const int ledRed = 2; // Red LED pin
+const int pumpPin = 7; // Pin connected to the pump relay
+
+void setup() {
+  Serial.begin(9600);
+  lcd.init();
+  lcd.backlight();
+  pinMode(sensorMoisture, INPUT);
+  pinMode(sensorTemperature, INPUT);
+  pinMode(relay, OUTPUT);
+  pinMode(ledBlue, OUTPUT);
+  pinMode(ledYellow, OUTPUT);
+  pinMode(ledRed, OUTPUT);
+  pinMode(pumpPin, OUTPUT); // Set pump pin as output
+}
+
+void loop() {
+  int moisture = analogRead(sensorMoisture);
+  float temperature = analogRead(sensorTemperature) / 2.0479;
+
+  Serial.print("Moisture: ");
+  Serial.print(moisture);
+  Serial.print("Temp: ");
+  Serial.println(temperature);
+
+  lcd.setCursor(0, 0);
+  lcd.print("Moisture: ");
+  lcd.print(moisture);
+  lcd.setCursor(0, 1);
+  lcd.print("Temp: ");
+  lcd.print(temperature);
+
+  if (moisture < 550) {
+    delay (5000);
+    Serial.println("Status: Media Masih Basah");
+    digitalWrite(relay, HIGH);
+    digitalWrite(ledBlue, HIGH);
+    digitalWrite(ledYellow, LOW);
+    digitalWrite(ledRed, LOW);
+    digitalWrite(pumpPin, LOW);// Turn off the pump
+    lcd.setCursor(0, 0);
+    lcd.print("Media Basah     ");
+  } else if (moisture < 850) {
+    delay (5000);
+    Serial.println("Status:Tanah Cukup Basah");
+    digitalWrite(relay, HIGH);
+    digitalWrite(ledBlue, LOW);
+    digitalWrite(ledYellow, HIGH);
+    digitalWrite(ledRed, LOW);
+    digitalWrite(pumpPin, LOW);// Turn off the pump
+    lcd.setCursor(0, 0);
+    lcd.print("Cukup Basah     ");
+  } else {
+    delay (5000);
+    Serial.println("Status: Perlu Tambah Air");
+    digitalWrite(relay, HIGH);
+    digitalWrite(ledBlue, LOW);
+    digitalWrite(ledYellow, LOW);
+    digitalWrite(ledRed, HIGH);
+    digitalWrite(pumpPin, HIGH); // Turn on the pump
+    lcd.setCursor(0, 0);
+    lcd.print("Media Kering   ");
+  }
+  delay (1000);
+}
